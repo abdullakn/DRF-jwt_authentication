@@ -38,7 +38,7 @@ class LoginView(APIView):
             'iat':datetime.datetime.utcnow()
         }    
         print(payload)
-        token=jwt.encode(payload,'secret',algorithm='HS256')
+        token=jwt.encode(payload,'secret',algorithm='HS256').decode('utf-8')
         print("dddddddddddd",token)
 
         response = Response()
@@ -47,6 +47,28 @@ class LoginView(APIView):
             "jwt":token
         }
         return response
+
+
+class UserView(APIView):     
+    def get(self,request):
+        token=request.COOKIES.get('jwt')   
+        print(token)
+        if not token:
+            return AuthenticationFailed("unauthenticated")
+        try:
+            pass
+            payload=jwt.decode(token,'secret',algorithm=['HS256'])    
+        except jwt.ExpiredSignatureError:
+            return AuthenticationFailed("unauthenticated")
+
+        print(payload)    
+
+        user=User.objects.get(id=payload['id'])    
+        print(user)
+        serializer=UserSerializer(user)
+        return Response(serializer.data)
+
+        # return Response(token)
         
          
       
